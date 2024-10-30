@@ -18,7 +18,9 @@ class GraphQL:
     def __call__(self, *args, **kwargs):
         return self.query(*args, **kwargs)
 
-    def query(self, query, variables=None, operation_name=None):
+    def query(self, query, variables=None, operation_name=None, paginate=False):
+        if paginate:
+            return self.__paginate(query, variables, operation_name)
         try:
             response = self.client.post(
                 self.__build_url(),
@@ -32,7 +34,7 @@ class GraphQL:
             logger.warning(f"Failed to parse JSON response: {repr(e)}")
             return {}
     
-    def query_paginated(self, query, variables=None, operation_name=None, page_size=100):
+    def __paginate(self, query, variables=None, operation_name=None, page_size=100):
         assert "pageInfo" in query, "Query must contain a 'pageInfo' object to be paginated"
 
         variables = variables or {}
