@@ -16,9 +16,9 @@ class GraphQL:
         return self.endpoint
     
     def __call__(self, *args, **kwargs):
-        return self.query(*args, **kwargs)
+        return self.__query(*args, **kwargs)
 
-    def query(self, query, variables=None, operation_name=None, paginate=False):
+    def __query(self, query, variables=None, operation_name=None, paginate=False):
         if paginate:
             return self.__paginate(query, variables, operation_name)
         try:
@@ -45,7 +45,7 @@ class GraphQL:
 
         while has_next_page:
             variables["cursor"] = cursor
-            response = self.query(query, variables, operation_name)
+            response = self.__query(query, variables, operation_name)
             page_info = self.__find_page_info(response)
             has_next_page = page_info.get("hasNextPage", False)
             cursor = page_info.get("endCursor", None)

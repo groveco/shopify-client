@@ -2,16 +2,6 @@ import requests
 import pytest
 from shopify_client import Endpoint, OrdersEndpoint, DraftOrdersEndpoint
 
-@pytest.fixture
-def mock_client(mocker):
-    client = mocker.Mock()
-    client.parse_response.side_effect = lambda x: x  # Just return the response data as-is
-    return client
-
-@pytest.fixture
-def endpoint(mock_client):
-    return Endpoint(client=mock_client, endpoint="test_endpoint")
-
 def test_prepare_params(endpoint):
     params = {
         "simple": "value",
