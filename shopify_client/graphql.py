@@ -18,9 +18,9 @@ class GraphQL:
     def __call__(self, *args, **kwargs):
         return self.__query(*args, **kwargs)
 
-    def __query(self, query, variables=None, operation_name=None, paginate=False):
+    def __query(self, query, variables=None, operation_name=None, paginate=False, page_size=100):
         if paginate:
-            return self.__paginate(query, variables, operation_name)
+            return self.__paginate(query, variables, operation_name, page_size)
         try:
             response = self.client.post(
                 self.__build_url(),
