@@ -4,6 +4,8 @@ from urllib.parse import urljoin
 
 import requests
 
+from shopify_client.hooks import rate_limit
+
 from .endpoint import DraftOrdersEndpoint, Endpoint, OrdersEndpoint
 from .graphql import GraphQL
 
@@ -107,23 +109,8 @@ class ShopifyClient(requests.Session):
         self.webhooks = Endpoint(client=self, endpoint="webhooks")
 
         # GraphQL
-        self.graphql = GraphQL(client=self)
-
-        def rate_limit(response, *args, **kwargs):
-            max_retry_count = 5
-            retry_count = int(response.request.headers.get("X-Retry-Count", 0))
-            
-            if response.status_code == 429 and retry_count < max_retry_count:
-                retry_after = int(response.headers.get("retry-after", 4))
-                logger.warning(f"Shopify service exceeds API call limit; will retry request in {retry_after} seconds")
-                time.sleep(retry_after)
-                response.request.headers["X-Retry-Count"] = retry_count + 1
-                new_response = response.connection.send(response.request)
-                new_response.history.append(response)
-                return rate_limit(new_response, *args, **kwargs)
-            
-            return response
-            
+        self.query = GraphQL(client=self)
+        
         self.hooks["response"].append(rate_limit)
 
     def request(self, method, url, *args, **kwargs):

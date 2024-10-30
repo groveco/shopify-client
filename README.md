@@ -73,10 +73,10 @@ query products($page_size: Int = 100) {
   }
 }
 '''
-response = client.graphql.query(query)
+response = client.query(query)
 
 # Limit page size
-response = client.graphql.query(query, variables={"page_size": 20})
+response = client.query(query, variables={"page_size": 20})
 
 # Use pagination. 
 # Note that "pageIngo" block with at least "hasNextPage" & "startCursor" is required
@@ -95,7 +95,7 @@ query products($page_size: Int = 100, $cursor: String) {
   }
 }
 '''
-for page in client.graphql.query_paginated(query)
+for page in client.query(query, paginate=True)
     print(page)
 ```
 

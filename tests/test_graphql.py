@@ -4,6 +4,7 @@ from unittest.mock import call
 import requests
 import pytest
 from shopify_client.graphql import GraphQL
+from tests.conftest import CopyingMock
 
 @pytest.fixture
 def graphql(mock_client):
@@ -11,14 +12,14 @@ def graphql(mock_client):
 
 def test_graphql_query(graphql, mock_client):
     mock_client.post.return_value = {"data": {"key": "value"}}
-    response = graphql.query(query="query { key }")
+    response = graphql(query="query { key }")
     mock_client.post.assert_called_once_with("graphql.json", json={"query": "query { key }", "variables": None, "operationName": None})
     assert response == {"data": {"key": "value"}}
 
 def test_graphql_query_with_variables(graphql, mock_client):
     mock_client.post.return_value = {"data": {"key": "value"}}
     variables = {"var1": "value1"}
-    response = graphql.query(query="query { key }", variables=variables)
+    response = graphql(query="query { key }", variables=variables)
     mock_client.post.assert_called_once_with("graphql.json", json={"query": "query { key }", "variables": variables, "operationName": None})
     assert response == {"data": {"key": "value"}}
 
@@ -27,19 +28,19 @@ def test_query_paginated(graphql, mock_client):
         {"data": {"pageInfo": {"hasNextPage": True, "endCursor": "cursor1"}}},
         {"data": {"pageInfo": {"hasNextPage": False}}}
     ]
-    results = list(graphql.query(query="query { pageInfo { hasNextPage, endCursor } }", paginate=True))
+    results = list(graphql(query="query { pageInfo { hasNextPage, endCursor } }", paginate=True))
     assert len(results) == 2
     assert results[0] == {"data": {"pageInfo": {"hasNextPage": True, "endCursor": "cursor1"}}}
     assert results[1] == {"data": {"pageInfo": {"hasNextPage": False}}}
 
 def test_query_handles_http_error(graphql, mock_client, mocker):
     mock_client.post.side_effect = requests.exceptions.HTTPError("HTTP Error")
-    response = graphql.query(query="query { key }")
+    response = graphql(query="query { key }")
     assert response == {}
 
 def test_query_handles_json_error(graphql, mock_client):
     mock_client.post.side_effect = json.JSONDecodeError("JSON Decode Error", "", 0)
-    response = graphql.query(query="query { key }")
+    response = graphql(query="query { key }")
     assert response == {}
 
 def test_graphql_call(graphql, mock_client):
@@ -76,16 +77,8 @@ def test_graphql_query_paginated(graphql, mock_client, mocker):
         }
     }
     
-    # Create a new mock that will deepcopy the arguments passed to it
-    # https://docs.python.org/3.7/library/unittest.mock-examples.html#coping-with-mutable-arguments
-    class CopyingMock(mocker.MagicMock):
-        def __call__(self, *args, **kwargs):
-            args = deepcopy(args)
-            kwargs = deepcopy(kwargs)
-            return super(CopyingMock, self).__call__(*args, **kwargs)
-    
     mock_client.post = CopyingMock(side_effect = [mock_paginated_response_1, mock_paginated_response_2])
-    response = list(graphql.query(query="query { items { id } pageInfo { hasNextPage, endCursor } }", paginate=True))
+    response = list(graphql(query="query { items { id } pageInfo { hasNextPage, endCursor } }", paginate=True))
     
     assert response == [mock_paginated_response_1, mock_paginated_response_2]
     assert mock_client.post.call_count == 2
