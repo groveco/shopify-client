@@ -39,3 +39,16 @@ def test_query_handles_json_error(graphql, mock_client):
     mock_client.post.side_effect = json.JSONDecodeError("JSON Decode Error", "", 0)
     response = graphql.query(query="query { key }")
     assert response == {}
+
+def test_graphql_call(graphql, mock_client):
+    mock_query_response = {"data": {"exampleField": "exampleValue"}}
+    mock_client.post.return_value = mock_query_response
+
+    # Call the GraphQL client like a function
+    response = graphql("query { exampleField }")
+
+    # Verify that the query method was called correctly
+    mock_client.post.assert_called_once_with("graphql.json", json={'query': 'query { exampleField }', 'variables': None, 'operationName': None})
+
+    # Assert the response is as expected
+    assert response == mock_query_response

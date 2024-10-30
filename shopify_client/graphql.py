@@ -14,6 +14,9 @@ class GraphQL:
 
     def __build_url(self, **params):
         return self.endpoint
+    
+    def __call__(self, *args, **kwargs):
+        return self.query(*args, **kwargs)
 
     def query(self, query, variables=None, operation_name=None):
         try:
