@@ -1,0 +1,36 @@
+name: Tag version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  tag-latest:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Configure Git user
+      - name: Set up Git
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Read version
+        id: get_version
+        run: echo "::set-output name=version::$(cat VERSION)"
+
+      # Create and push the "latest" tag
+      - name: Tag the latest commit
+        env:
+            VERSION: ${{ steps.get_version.outputs.version }}
+        run: |
+          git tag -f "v$VERSION"
+          git push origin "v$VERSION" --force
+
+          git tag -f latest
+          git push origin latest --force

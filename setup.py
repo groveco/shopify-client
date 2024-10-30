@@ -1,8 +1,12 @@
 from setuptools import setup, find_packages
 
+def get_version():
+    with open("VERSION") as f:
+        return f.read().strip()
+
 setup(
     name="shopify-client",
-    version="0.1.0",
+    version=get_version(),
     description="Python client for Shopify REST and GraphQL API",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
