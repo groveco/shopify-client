@@ -1,0 +1,8 @@
+*#*
+*.pyc
+.env
+.env.BAK
+tmp/
+src/
+
+*.log
