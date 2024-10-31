@@ -16,7 +16,7 @@ SHOPIFY_API_VERSION = "2024-10"
 
 class ShopifyClient(requests.Session):
 
-    def __init__(self, api_url, api_token, api_version=SHOPIFY_API_VERSION, grapgql_queries_dir=None):
+    def __init__(self, api_url, api_token, api_version=SHOPIFY_API_VERSION, graphql_queries_dir=None):
         super().__init__()
         self.api_url = api_url
         self.api_version = api_version
@@ -24,7 +24,7 @@ class ShopifyClient(requests.Session):
 
         # Access
         self.storefront_access_tokens = Endpoint(client=self, endpoint="storefront_access_tokens")
-        
+
         # Billing
         self.application_charges = Endpoint(client=self, endpoint="application_charges")
         self.application_credits = Endpoint(client=self, endpoint="application_credits")
@@ -104,20 +104,20 @@ class ShopifyClient(requests.Session):
 
         # Tender Transactions
         self.tender_transactions = Endpoint(client=self, endpoint="tender_transactions")
-        
+
         # Webhooks
         self.webhooks = Endpoint(client=self, endpoint="webhooks")
 
         # GraphQL
-        self.query = GraphQL(client=self, grapgql_queries_dir=grapgql_queries_dir)
-        
+        self.query = GraphQL(client=self, graphql_queries_dir=graphql_queries_dir)
+
         self.hooks["response"].append(rate_limit)
 
     def request(self, method, url, *args, **kwargs):
         response = super().request(method, urljoin(f"{self.api_url}/admin/api/{self.api_version}/", url), *args, **kwargs)
         logger.info(f"Requesting {method} {url}: {response.status_code}")
         return response
-    
+
     def parse_response(self, response):
         try:
             response.raise_for_status()

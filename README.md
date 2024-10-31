@@ -63,7 +63,7 @@ order = client.orders.close(resource_id=1234)
 
 ```python
 # Initialize the client
-client = ShopifyClient(api_url='your_api_url', api_token='your_token', api_version='your_api_version', grapgql_queries_dir="queries")
+client = ShopifyClient(api_url='your_api_url', api_token='your_token', api_version='your_api_version', graphql_queries_dir="queries")
 
 # queries/listProducts.graphql
 query products($page_size: Int = 100) {
@@ -82,7 +82,7 @@ response = client.query(query_name="listProducts")
 # Limit page size
 response = client.query(query, variables={"page_size": 20})
 
-# Use pagination. 
+# Use pagination.
 # Note that "pageIngo" block with at least "hasNextPage" & "startCursor" is required
 # $cursor value should be passed as "after" parameter
 query = '''
