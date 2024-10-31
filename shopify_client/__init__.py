@@ -16,7 +16,7 @@ SHOPIFY_API_VERSION = "2024-10"
 
 class ShopifyClient(requests.Session):
 
-    def __init__(self, api_url, api_token, api_version=SHOPIFY_API_VERSION):
+    def __init__(self, api_url, api_token, api_version=SHOPIFY_API_VERSION, grapgql_queries_dir=None):
         super().__init__()
         self.api_url = api_url
         self.api_version = api_version
@@ -109,7 +109,7 @@ class ShopifyClient(requests.Session):
         self.webhooks = Endpoint(client=self, endpoint="webhooks")
 
         # GraphQL
-        self.query = GraphQL(client=self)
+        self.query = GraphQL(client=self, grapgql_queries_dir=grapgql_queries_dir)
         
         self.hooks["response"].append(rate_limit)
 

@@ -62,8 +62,10 @@ order = client.orders.close(resource_id=1234)
 ### GraphQL API
 
 ```python
-# List products
-query = '''
+# Initialize the client
+client = ShopifyClient(api_url='your_api_url', api_token='your_token', api_version='your_api_version', grapgql_queries_dir="queries")
+
+# queries/listProducts.graphql
 query products($page_size: Int = 100) {
   products(first: $page_size) {
     nodes {
@@ -72,8 +74,10 @@ query products($page_size: Int = 100) {
     }
   }
 }
-'''
-response = client.query(query)
+
+
+# List products
+response = client.query(query_name="listProducts")
 
 # Limit page size
 response = client.query(query, variables={"page_size": 20})
@@ -95,7 +99,7 @@ query products($page_size: Int = 100, $cursor: String) {
   }
 }
 '''
-for page in client.query(query, paginate=True)
+for page in client.query(query=query, paginate=True)
     print(page)
 ```
 

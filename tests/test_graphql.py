@@ -1,6 +1,6 @@
 from copy import deepcopy
 import json
-from unittest.mock import call
+from unittest.mock import MagicMock, call, mock_open, patch
 import requests
 import pytest
 from shopify_client.graphql import GraphQL
@@ -15,6 +15,18 @@ def test_graphql_query(graphql, mock_client):
     response = graphql(query="query { key }")
     mock_client.post.assert_called_once_with("graphql.json", json={"query": "query { key }", "variables": None, "operationName": None})
     assert response == {"data": {"key": "value"}}
+
+def test_graphql_query_with_query_name(graphql, mock_client):
+    mock_query_content = "query { items { id } }"
+    graphql.grapgql_queries_dir = "queries"
+    with patch("builtins.open", mock_open(read_data=mock_query_content)):
+        mock_client.post.return_value = {"data": {"items": []}}
+        response = graphql(query_name="test_query")
+        mock_client.post.assert_called_once_with(
+            "graphql.json",
+            json={"query": mock_query_content, "variables": None, "operationName": None},
+        )
+        assert response == {"data": {"items": []}}
 
 def test_graphql_query_with_variables(graphql, mock_client):
     mock_client.post.return_value = {"data": {"key": "value"}}

@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 
 import requests
 
@@ -8,19 +9,32 @@ logger = logging.getLogger(__name__)
 
 class GraphQL:
 
-    def __init__(self, client):
+    def __init__(self, client, grapgql_queries_dir=None):
         self.client = client
         self.endpoint = "graphql.json"
+        self.grapgql_queries_dir = grapgql_queries_dir
 
     def __build_url(self, **params):
         return self.endpoint
     
     def __call__(self, *args, **kwargs):
         return self.__query(*args, **kwargs)
+    
+    def query_from_name(self, name):
+        assert self.grapgql_queries_dir, "GraphQL queries directory is not set"
 
-    def __query(self, query, variables=None, operation_name=None, paginate=False, page_size=100):
+        query_path = os.path.join(self.grapgql_queries_dir, f"{name}.graphql")
+        with open(query_path, "r") as f:
+            return f.read()
+
+    def __query(self, query=None, query_name=None, variables=None, operation_name=None, paginate=False, page_size=100):
+        assert query or query_name, "Either 'query' or 'query_name' must be provided"
+
+        if query is None and query_name:
+            query = self.query_from_name(query_name)
+        
         if paginate:
-            return self.__paginate(query, variables, operation_name, page_size)
+            return self.__paginate(query=query, variables=variables, operation_name=operation_name, page_size=page_size)
         try:
             response = self.client.post(
                 self.__build_url(),
@@ -45,7 +59,7 @@ class GraphQL:
 
         while has_next_page:
             variables["cursor"] = cursor
-            response = self.__query(query, variables, operation_name)
+            response = self.__query(query=query, variables=variables, operation_name=operation_name)
             page_info = self.__find_page_info(response)
             has_next_page = page_info.get("hasNextPage", False)
             cursor = page_info.get("endCursor", None)
