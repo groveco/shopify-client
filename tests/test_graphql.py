@@ -18,7 +18,7 @@ def test_graphql_query(graphql, mock_client):
 
 def test_graphql_query_with_query_name(graphql, mock_client):
     mock_query_content = "query { items { id } }"
-    graphql.grapgql_queries_dir = "queries"
+    graphql.graphql_queries_dir = "queries"
     with patch("builtins.open", mock_open(read_data=mock_query_content)):
         mock_client.post.return_value = {"data": {"items": []}}
         response = graphql(query_name="test_query")
@@ -88,10 +88,10 @@ def test_graphql_query_paginated(graphql, mock_client, mocker):
             }
         }
     }
-    
+
     mock_client.post = CopyingMock(side_effect = [mock_paginated_response_1, mock_paginated_response_2])
     response = list(graphql(query="query { items { id } pageInfo { hasNextPage, endCursor } }", paginate=True))
-    
+
     assert response == [mock_paginated_response_1, mock_paginated_response_2]
     assert mock_client.post.call_count == 2
     mock_client.post.assert_has_calls([

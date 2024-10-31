@@ -9,21 +9,21 @@ logger = logging.getLogger(__name__)
 
 class GraphQL:
 
-    def __init__(self, client, grapgql_queries_dir=None):
+    def __init__(self, client, graphql_queries_dir=None):
         self.client = client
         self.endpoint = "graphql.json"
-        self.grapgql_queries_dir = grapgql_queries_dir
+        self.graphql_queries_dir = graphql_queries_dir
 
     def __build_url(self, **params):
         return self.endpoint
-    
+
     def __call__(self, *args, **kwargs):
         return self.__query(*args, **kwargs)
-    
-    def query_from_name(self, name):
-        assert self.grapgql_queries_dir, "GraphQL queries directory is not set"
 
-        query_path = os.path.join(self.grapgql_queries_dir, f"{name}.graphql")
+    def query_from_name(self, name):
+        assert self.graphql_queries_dir, "GraphQL queries directory is not set"
+
+        query_path = os.path.join(self.graphql_queries_dir, f"{name}.graphql")
         with open(query_path, "r") as f:
             return f.read()
 
@@ -32,7 +32,7 @@ class GraphQL:
 
         if query is None and query_name:
             query = self.query_from_name(query_name)
-        
+
         if paginate:
             return self.__paginate(query=query, variables=variables, operation_name=operation_name, page_size=page_size)
         try:
@@ -47,7 +47,7 @@ class GraphQL:
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse JSON response: {repr(e)}")
             return {}
-    
+
     def __paginate(self, query, variables=None, operation_name=None, page_size=100):
         assert "pageInfo" in query, "Query must contain a 'pageInfo' object to be paginated"
 
