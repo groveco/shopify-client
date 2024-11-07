@@ -26,6 +26,31 @@ def test_build_url_with_params(endpoint):
     url = endpoint._Endpoint__build_url(resource_id=1, action="test", param="value")
     assert url == "test_endpoint/1/test.json?param=value"
 
+def test_build_url_for_sub_endpoint_create(endpoint):
+    endpoint.sub_endpoint = "metafields"
+    url = endpoint._Endpoint__build_url(resource_id=1)
+    assert url == "test_endpoint/1/metafields.json"
+
+def test_build_url_for_sub_endpoint_get(endpoint):
+    endpoint.sub_endpoint = "metafields"
+    url = endpoint._Endpoint__build_url(resource_id=1, sub_resource_id=2)
+    assert url == "test_endpoint/1/metafields/2.json"
+
+def test_build_url_for_sub_endpoint_all(endpoint):
+    endpoint.sub_endpoint = "metafields"
+    url = endpoint._Endpoint__build_url(resource_id=1)
+    assert url == "test_endpoint/1/metafields.json"
+
+def test_build_url_for_sub_endpoint_update(endpoint):
+    endpoint.sub_endpoint = "metafields"
+    url = endpoint._Endpoint__build_url(resource_id=1, sub_resource_id=2)
+    assert url == "test_endpoint/1/metafields/2.json"
+
+def test_build_url_for_sub_endpoint_delete(endpoint):
+    endpoint.sub_endpoint = "metafields"
+    url = endpoint._Endpoint__build_url(resource_id=1, sub_resource_id=2)
+    assert url == "test_endpoint/1/metafields/2.json"
+
 def test_get(endpoint, mock_client):
     mock_client.get.return_value = {"result": "success"}
     response = endpoint.get(1, param="value")
