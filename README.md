@@ -32,24 +32,36 @@ for page in client.products.all(paginate=True, limit=100)
 # Get specific product by id
 product = client.products.get(resource_id=1234)
 
-# List product metafields for product id
-metafields = client.products.metafields.all(resource_id=1234)
-
-# Get speficic metafield by id
-metafield = client.products.metafields.all(resource_id=1234, sub_resource_id=5678)
-
 # Create a product
 data = {"product":{"title":"Burton Custom Freestyle 151","body_html":"<strong>Good snowboard!</strong>","vendor":"Burton","product_type":"Snowboard","status":"draft"}}
 product = client.products.create(json=data)
 
 # Update product
-product = client.products.create(resource_id=1234, json=data)
+product = client.products.update(resource_id=1234, json=data)
 
 # Delete product
-deleted = client.products.delete(resource=1234)
+deleted = client.products.delete(resource_id=1234)
 
 # Count of products
 count = client.products.count()
+
+# Get product metafields
+metafields = client.products.metafields.all(resource_id=1234)
+
+# Get product metafield
+metafield = client.products.metafields.get(resource_id=1234, sub_resource_id=5678)
+
+# Create product metafield
+data = {"metafield": {"namespace": "warehouse", "key": "foo", "value": 25, "type": "integer"}}
+metafield = client.products.metafields.create(resource_id=5678, json=data)
+
+# Update product metafield
+data = {"metafield": {"value": 30}}
+metafield = client.products.metafields.update(resource_id=1234, sub_resource_id=5678, json=data)
+
+# Delete product metafield
+deleted = client.products.metafields.delete(resource_id=1234, sub_resource_id=5678)
+
 
 # Cancel order
 order = client.orders.cancel(resource_id=1234)

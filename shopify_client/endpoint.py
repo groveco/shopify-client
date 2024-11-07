@@ -63,8 +63,8 @@ class Endpoint(object):
         url = self.__build_url(resource_id=resource_id, **params)
         return self.client.parse_response(self.client.get(url))
     
-    def create(self, json: dict):
-        url = self.__build_url()
+    def create(self, json: dict, **params):
+        url = self.__build_url(**params)
         return self.client.parse_response(self.client.post(url, json=json))
 
     def update(self, resource_id, json, **params):
