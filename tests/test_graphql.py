@@ -45,15 +45,15 @@ def test_query_paginated(graphql, mock_client):
     assert results[0] == {"data": {"pageInfo": {"hasNextPage": True, "endCursor": "cursor1"}}}
     assert results[1] == {"data": {"pageInfo": {"hasNextPage": False}}}
 
-def test_query_handles_http_error(graphql, mock_client, mocker):
+def test_query_reraises_http_error(graphql, mock_client):
     mock_client.post.side_effect = requests.exceptions.HTTPError("HTTP Error")
-    response = graphql(query="query { key }")
-    assert response == {}
+    with pytest.raises(requests.exceptions.HTTPError):
+        graphql(query="query { key }")
 
-def test_query_handles_json_error(graphql, mock_client):
+def test_query_reraises_json_error(graphql, mock_client):
     mock_client.post.side_effect = json.JSONDecodeError("JSON Decode Error", "", 0)
-    response = graphql(query="query { key }")
-    assert response == {}
+    with pytest.raises(json.JSONDecodeError):
+        graphql(query="query { key }")
 
 def test_graphql_call(graphql, mock_client):
     mock_query_response = {"data": {"exampleField": "exampleValue"}}
