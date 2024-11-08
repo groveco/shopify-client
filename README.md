@@ -95,7 +95,7 @@ response = client.query(query_name="listProducts")
 response = client.query(query, variables={"page_size": 20})
 
 # Use pagination.
-# Note that "pageIngo" block with at least "hasNextPage" & "startCursor" is required
+# Note that "pageIngo" block with at least "hasNextPage" & "endCursor" is required
 # $cursor value should be passed as "after" parameter
 query = '''
 query products($page_size: Int = 100, $cursor: String) {
@@ -106,7 +106,7 @@ query products($page_size: Int = 100, $cursor: String) {
     }
     pageInfo {
       hasNextPage
-      startCursor
+      endCursor
     }
   }
 }

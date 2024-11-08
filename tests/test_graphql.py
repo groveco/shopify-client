@@ -98,3 +98,15 @@ def test_graphql_query_paginated(graphql, mock_client, mocker):
         call("graphql.json", json={"query": "query { items { id } pageInfo { hasNextPage, endCursor } }", "variables": {"cursor": None, "page_size": 100}, "operationName": None}),
         call("graphql.json", json={"query": "query { items { id } pageInfo { hasNextPage, endCursor } }", "variables": {"cursor": "cursor-1", "page_size": 100}, "operationName": None}),
     ])
+
+def test_paginated_query_requires_page_info(graphql, mock_client):
+    with pytest.raises(AssertionError):
+        list(graphql(query="query { items { id } }", paginate=True))
+
+def test_paginated_query_requires_has_next_page(graphql, mock_client):
+    with pytest.raises(AssertionError):
+        list(graphql(query="query { pageInfo { endCursor } }", paginate=True))
+
+def test_paginated_query_requires_end_cursor(graphql, mock_client):
+    with pytest.raises(AssertionError):
+        list(graphql(query="query { pageInfo { hasNextPage } }", paginate=True))

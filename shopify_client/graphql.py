@@ -50,6 +50,8 @@ class GraphQL:
 
     def __paginate(self, query, variables=None, operation_name=None, page_size=100):
         assert "pageInfo" in query, "Query must contain a 'pageInfo' object to be paginated"
+        assert "hasNextPage" in query[query.find("pageInfo"):], "Query must contain a 'hasNextPage' field in 'pageInfo' object"
+        assert "endCursor" in query[query.find("pageInfo"):], "Query must contain a 'endCursor' field in 'pageInfo' object"
 
         variables = variables or {}
         variables["page_size"] = page_size
