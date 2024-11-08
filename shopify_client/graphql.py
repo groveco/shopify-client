@@ -43,13 +43,15 @@ class GraphQL:
             return self.client.parse_response(response)
         except requests.exceptions.HTTPError as e:
             logger.warning(f"Failed to execute GraphQL query: {repr(e)}")
-            return {}
+            raise e
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse JSON response: {repr(e)}")
-            return {}
+            raise e
 
     def __paginate(self, query, variables=None, operation_name=None, page_size=100):
         assert "pageInfo" in query, "Query must contain a 'pageInfo' object to be paginated"
+        assert "hasNextPage" in query[query.find("pageInfo"):], "Query must contain a 'hasNextPage' field in 'pageInfo' object"
+        assert "endCursor" in query[query.find("pageInfo"):], "Query must contain a 'endCursor' field in 'pageInfo' object"
 
         variables = variables or {}
         variables["page_size"] = page_size
