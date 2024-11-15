@@ -9,8 +9,11 @@ import pytest
 @pytest.fixture
 def mock_client(mocker):
     client = mocker.Mock()
-    client.parse_response.side_effect = lambda x: x  # Just return the response data as-is
+    client.parse_response.side_effect = (
+        lambda x: x
+    )  # Just return the response data as-is
     return client
+
 
 @pytest.fixture
 def endpoint(mock_client):
@@ -19,10 +22,13 @@ def endpoint(mock_client):
 
 @pytest.fixture
 def shopify_client(mocker):
-    return ShopifyClient(api_url="https://test-shop.myshopify.com", api_token="test-token")
+    return ShopifyClient(
+        api_url="https://test-shop.myshopify.com", api_token="test-token"
+    )
+
 
 # Create a new mock that will deepcopy the arguments passed to it
-    # https://docs.python.org/3.7/library/unittest.mock-examples.html#coping-with-mutable-arguments
+# https://docs.python.org/3.7/library/unittest.mock-examples.html#coping-with-mutable-arguments
 class CopyingMock(Mock):
     def __call__(self, *args, **kwargs):
         args = deepcopy(args)
