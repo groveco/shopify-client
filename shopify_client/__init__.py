@@ -6,8 +6,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 
-from shopify_client.hooks import rate_limit
-
 from .endpoint import DraftOrdersEndpoint, Endpoint, OrdersEndpoint
 from .graphql import GraphQL
 
