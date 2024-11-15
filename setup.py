@@ -1,8 +1,10 @@
-from setuptools import setup, find_packages
+from setuptools import setup
+
 
 def get_version():
     with open("VERSION") as f:
         return f.read().strip()
+
 
 setup(
     name="shopify-client",
@@ -25,7 +27,7 @@ setup(
             "flake8",
             "black",
             "sphinx",
-            "pre-commit"
+            "pre-commit",
         ]
     },
     python_requires=">=3.9",

@@ -1,5 +1,4 @@
 import logging
-import time
 from urllib.parse import urljoin
 
 import requests
@@ -15,7 +14,6 @@ SHOPIFY_API_VERSION = "2024-10"
 
 
 class ShopifyClient(requests.Session):
-
     def __init__(
         self,
         api_url,

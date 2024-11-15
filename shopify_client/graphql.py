@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 
 class GraphQL:
-
     def __init__(self, client, graphql_queries_dir=None):
         self.client = client
         self.endpoint = "graphql.json"
@@ -27,18 +26,35 @@ class GraphQL:
         with open(query_path, "r") as f:
             return f.read()
 
-    def __query(self, query=None, query_name=None, variables=None, operation_name=None, paginate=False, page_size=100):
+    def __query(
+        self,
+        query=None,
+        query_name=None,
+        variables=None,
+        operation_name=None,
+        paginate=False,
+        page_size=100,
+    ):
         assert query or query_name, "Either 'query' or 'query_name' must be provided"
 
         if query is None and query_name:
             query = self.query_from_name(query_name)
 
         if paginate:
-            return self.__paginate(query=query, variables=variables, operation_name=operation_name, page_size=page_size)
+            return self.__paginate(
+                query=query,
+                variables=variables,
+                operation_name=operation_name,
+                page_size=page_size,
+            )
         try:
             response = self.client.post(
                 self.__build_url(),
-                json={"query": query, "variables": variables, "operationName": operation_name},
+                json={
+                    "query": query,
+                    "variables": variables,
+                    "operationName": operation_name,
+                },
             )
             return self.client.parse_response(response)
         except requests.exceptions.HTTPError as e:
@@ -49,9 +65,15 @@ class GraphQL:
             raise e
 
     def __paginate(self, query, variables=None, operation_name=None, page_size=100):
-        assert "pageInfo" in query, "Query must contain a 'pageInfo' object to be paginated"
-        assert "hasNextPage" in query[query.find("pageInfo"):], "Query must contain a 'hasNextPage' field in 'pageInfo' object"
-        assert "endCursor" in query[query.find("pageInfo"):], "Query must contain a 'endCursor' field in 'pageInfo' object"
+        assert (
+            "pageInfo" in query
+        ), "Query must contain a 'pageInfo' object to be paginated"
+        assert (
+            "hasNextPage" in query[query.find("pageInfo") :]
+        ), "Query must contain a 'hasNextPage' field in 'pageInfo' object"
+        assert (
+            "endCursor" in query[query.find("pageInfo") :]
+        ), "Query must contain a 'endCursor' field in 'pageInfo' object"
 
         variables = variables or {}
         variables["page_size"] = page_size
@@ -61,7 +83,9 @@ class GraphQL:
 
         while has_next_page:
             variables["cursor"] = cursor
-            response = self.__query(query=query, variables=variables, operation_name=operation_name)
+            response = self.__query(
+                query=query, variables=variables, operation_name=operation_name
+            )
             page_info = self.__find_page_info(response)
             has_next_page = page_info.get("hasNextPage", False)
             cursor = page_info.get("endCursor", None)
