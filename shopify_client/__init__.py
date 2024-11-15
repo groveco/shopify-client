@@ -3,8 +3,8 @@ import time
 from urllib.parse import urljoin
 
 import requests
-
-from shopify_client.hooks import rate_limit
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 from .endpoint import DraftOrdersEndpoint, Endpoint, OrdersEndpoint
 from .graphql import GraphQL
@@ -16,19 +16,46 @@ SHOPIFY_API_VERSION = "2024-10"
 
 class ShopifyClient(requests.Session):
 
-    def __init__(self, api_url, api_token, api_version=SHOPIFY_API_VERSION, graphql_queries_dir=None):
+    def __init__(
+        self,
+        api_url,
+        api_token,
+        api_version=SHOPIFY_API_VERSION,
+        graphql_queries_dir=None,
+    ):
         super().__init__()
         self.api_url = api_url
         self.api_version = api_version
-        self.headers.update({"X-Shopify-Access-Token": api_token, "Content-Type": "application/json"})
+        self.headers.update(
+            {"X-Shopify-Access-Token": api_token, "Content-Type": "application/json"}
+        )
+
+        retry_strategy = Retry(
+            total=10,
+            connect=3,
+            read=3,
+            status=5,
+            backoff_factor=0.5,
+            allowed_methods=frozenset(["GET", "POST", "PUT", "PATCH", "DELETE"]),
+            status_forcelist=frozenset([429, 500, 502, 503, 504]),
+            respect_retry_after_header=True,
+        )
+
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.mount("http://", adapter)
+        self.mount("https://", adapter)
 
         # Access
-        self.storefront_access_tokens = Endpoint(client=self, endpoint="storefront_access_tokens")
+        self.storefront_access_tokens = Endpoint(
+            client=self, endpoint="storefront_access_tokens"
+        )
 
         # Billing
         self.application_charges = Endpoint(client=self, endpoint="application_charges")
         self.application_credits = Endpoint(client=self, endpoint="application_credits")
-        self.recurring_application_charges = Endpoint(client=self, endpoint="recurring_application_charges")
+        self.recurring_application_charges = Endpoint(
+            client=self, endpoint="recurring_application_charges"
+        )
 
         # Customers
         self.customers = Endpoint(client=self, endpoint="customers", metafields=True)
@@ -53,7 +80,9 @@ class ShopifyClient(requests.Session):
         self.marketing_events = Endpoint(client=self, endpoint="marketing_events")
 
         # Mobile Support
-        self.mobile_platform_applications = Endpoint(client=self, endpoint="mobile_platform_applications")
+        self.mobile_platform_applications = Endpoint(
+            client=self, endpoint="mobile_platform_applications"
+        )
 
         # Online Store
         self.articles = Endpoint(client=self, endpoint="articles", metafields=True)
@@ -62,7 +91,9 @@ class ShopifyClient(requests.Session):
 
         # Orders
         self.checkouts = Endpoint(client=self, endpoint="checkouts")
-        self.draft_orders = DraftOrdersEndpoint(client=self, endpoint="draft_orders", metafields=True)
+        self.draft_orders = DraftOrdersEndpoint(
+            client=self, endpoint="draft_orders", metafields=True
+        )
         self.orders = OrdersEndpoint(client=self, endpoint="orders")
 
         # Plus
@@ -70,27 +101,41 @@ class ShopifyClient(requests.Session):
 
         # Products
         self.collects = Endpoint(client=self, endpoint="collects")
-        self.collections = Endpoint(client=self, endpoint="collections", metafields=True)
+        self.collections = Endpoint(
+            client=self, endpoint="collections", metafields=True
+        )
         self.custom_collections = Endpoint(client=self, endpoint="custom_collections")
         self.products = Endpoint(client=self, endpoint="products", metafields=True)
-        self.products.images = Endpoint(client=self, endpoint="products", sub_endpoint="images")
-        self.product_images = Endpoint(client=self, endpoint="product_images", metafields=True)
-        self.smart_collections = Endpoint(client=self, endpoint="smart_collections", metafields=True)
+        self.products.images = Endpoint(
+            client=self, endpoint="products", sub_endpoint="images"
+        )
+        self.product_images = Endpoint(
+            client=self, endpoint="product_images", metafields=True
+        )
+        self.smart_collections = Endpoint(
+            client=self, endpoint="smart_collections", metafields=True
+        )
         self.variants = Endpoint(client=self, endpoint="variants", metafields=True)
 
         # Sales Channels
-        self.collections_listings = Endpoint(client=self, endpoint="collections_listings")
+        self.collections_listings = Endpoint(
+            client=self, endpoint="collections_listings"
+        )
         self.checkouts = Endpoint(client=self, endpoint="checkouts")
         self.product_listings = Endpoint(client=self, endpoint="product_listings")
         self.resource_feedback = Endpoint(client=self, endpoint="resource_feedback")
 
         # Shipping and Fulfillment
-        self.assigned_fulfillment_orders = Endpoint(client=self, endpoint="assigned_fulfillment_orders")
+        self.assigned_fulfillment_orders = Endpoint(
+            client=self, endpoint="assigned_fulfillment_orders"
+        )
         # TODO: Implement Fulfillment
         self.fulfillment_orders = Endpoint(client=self, endpoint="fulfillment_orders")
         self.carrier_services = Endpoint(client=self, endpoint="carrier_services")
         self.fulfillments = Endpoint(client=self, endpoint="fulfillments")
-        self.fulfillment_services = Endpoint(client=self, endpoint="fulfillment_services")
+        self.fulfillment_services = Endpoint(
+            client=self, endpoint="fulfillment_services"
+        )
 
         # Shopify Payments
         self.shopify_payments = Endpoint(client=self, endpoint="shopify_payments")
@@ -111,10 +156,13 @@ class ShopifyClient(requests.Session):
         # GraphQL
         self.query = GraphQL(client=self, graphql_queries_dir=graphql_queries_dir)
 
-        self.hooks["response"].append(rate_limit)
-
     def request(self, method, url, *args, **kwargs):
-        response = super().request(method, urljoin(f"{self.api_url}/admin/api/{self.api_version}/", url), *args, **kwargs)
+        response = super().request(
+            method,
+            urljoin(f"{self.api_url}/admin/api/{self.api_version}/", url),
+            *args,
+            **kwargs,
+        )
         logger.info(f"Requesting {method} {url}: {response.status_code}")
         return response
 
