@@ -2,6 +2,7 @@ import json
 from unittest.mock import call, mock_open, patch
 import requests
 import pytest
+from shopify_client.exceptions import GraphQLError
 from shopify_client.graphql import GraphQL
 from tests.conftest import CopyingMock
 
@@ -159,3 +160,60 @@ def test_paginated_query_requires_has_next_page(graphql, mock_client):
 def test_paginated_query_requires_end_cursor(graphql, mock_client):
     with pytest.raises(AssertionError):
         list(graphql(query="query { pageInfo { hasNextPage } }", paginate=True))
+
+
+def test_graphql_query_handles_empty_data_with_errors_only(graphql, mock_client):
+    mock_client.post.return_value = {"errors": [{"message": "Another error occurred"}]}
+    with pytest.raises(GraphQLError, match='[{"message": "Another error occurred"}]'):
+        graphql(query="query { key }")
+
+
+def test_graphql_query_reraises_http_error(graphql, mock_client):
+    mock_client.post.side_effect = requests.exceptions.HTTPError("HTTP Error")
+    with pytest.raises(requests.exceptions.HTTPError):
+        graphql(query="query { key }")
+
+
+def test_graphql_query_reraises_json_error(graphql, mock_client):
+    mock_client.post.side_effect = json.JSONDecodeError("JSON Decode Error", "", 0)
+    with pytest.raises(json.JSONDecodeError):
+        graphql(query="query { key }")
+
+
+def test_graphql_query_handles_data_with_errors(graphql, mock_client):
+    mock_client.post.return_value = {
+        "data": {"key": "value"},
+        "errors": [{"message": "Some error occurred"}],
+    }
+
+    # Mock the logger from the client
+    with patch("shopify_client.graphql.logger") as mock_logger:
+        response = graphql(query="query { key }")
+
+        # Check that the response contains the data
+        assert response == {
+            "data": {"key": "value"},
+            "errors": [{"message": "Some error occurred"}],
+        }
+
+        # Verify that the logger was called with the expected message
+        mock_logger.error.assert_called_once_with(
+            "GraphQL errors: [{'message': 'Some error occurred'}]"
+        )
+
+
+def test_graphql_query_handles_none_data_with_errors(graphql, mock_client):
+    mock_client.post.return_value = {
+        "data": None,
+        "errors": [{"message": "Some error occurred"}],
+    }
+
+    # Mock the logger from the client
+    with patch("shopify_client.graphql.logger") as mock_logger:
+        with pytest.raises(GraphQLError, match='[{"message": "Some error occurred"}]'):
+            graphql(query="query { key }")
+
+        # Verify that the logger was called with the expected message
+        mock_logger.error.assert_called_once_with(
+            "GraphQL errors: [{'message': 'Some error occurred'}]"
+        )
