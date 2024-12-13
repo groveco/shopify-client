@@ -4,6 +4,8 @@ import os
 
 import requests
 
+from .exceptions import GraphQLError
+
 logger = logging.getLogger(__name__)
 
 
@@ -56,7 +58,12 @@ class GraphQL:
                     "operationName": operation_name,
                 },
             )
-            return self.client.parse_response(response)
+            parsed_response = self.client.parse_response(response)
+            if "errors" in parsed_response:
+                logger.error(f"GraphQL errors: {parsed_response['errors']}")
+                if parsed_response.get("data", None) is None:
+                    raise GraphQLError(f"GraphQL errors: {parsed_response['errors']}")
+            return parsed_response
         except requests.exceptions.HTTPError as e:
             logger.warning(f"Failed to execute GraphQL query: {repr(e)}")
             raise e
