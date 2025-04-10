@@ -3,7 +3,7 @@ import logging
 import os
 
 import requests
-
+from tenacity import retry, wait_exponential, stop_after_attempt, before_sleep_log
 from .exceptions import GraphQLError
 
 logger = logging.getLogger(__name__)
@@ -28,6 +28,8 @@ class GraphQL:
         with open(query_path, "r") as f:
             return f.read()
 
+    @retry(wait=wait_exponential(multiplier=3, min=3), stop=stop_after_attempt(4),
+       before_sleep=before_sleep_log(logger, logging.INFO))
     def __query(
         self,
         query=None,
