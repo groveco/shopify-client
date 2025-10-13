@@ -188,7 +188,7 @@ def test_graphql_query_handles_data_with_errors(graphql, mock_client):
 
     # Mock the logger from the client
     with patch("shopify_client.graphql.logger") as mock_logger:
-        response = graphql(query="query { key }")
+        response = graphql(query="query { key }", variables={"someVar": 123})
 
         # Check that the response contains the data
         assert response == {
@@ -198,7 +198,7 @@ def test_graphql_query_handles_data_with_errors(graphql, mock_client):
 
         # Verify that the logger was called with the expected message
         mock_logger.error.assert_called_once_with(
-            "GraphQL errors: [{'message': 'Some error occurred'}]"
+            "GraphQL errors: [{'message': 'Some error occurred'}] Variables: {'someVar': 123}"
         )
 
 
@@ -210,10 +210,14 @@ def test_graphql_query_handles_none_data_with_errors(graphql, mock_client):
 
     # Mock the logger from the client
     with patch("shopify_client.graphql.logger") as mock_logger:
-        with pytest.raises(GraphQLError, match='[{"message": "Some error occurred"}]'):
-            graphql(query="query { key }")
+        with pytest.raises(GraphQLError) as exc_info:
+            graphql(query="query { key }", variables={"someVar": 123})
+        assert (
+            str(exc_info.value)
+            == "GraphQL errors: [{'message': 'Some error occurred'}] Variables: {'someVar': 123}"
+        )
 
         # Verify that the logger was called with the expected message
         mock_logger.error.assert_called_once_with(
-            "GraphQL errors: [{'message': 'Some error occurred'}]"
+            "GraphQL errors: [{'message': 'Some error occurred'}] Variables: {'someVar': 123}"
         )
