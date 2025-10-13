@@ -60,9 +60,13 @@ class GraphQL:
             )
             parsed_response = self.client.parse_response(response)
             if "errors" in parsed_response:
-                logger.error(f"GraphQL errors: {parsed_response['errors']}")
+                logger.error(
+                    f"GraphQL errors: {parsed_response['errors']} Variables: {variables}"
+                )
                 if parsed_response.get("data", None) is None:
-                    raise GraphQLError(f"GraphQL errors: {parsed_response['errors']}")
+                    raise GraphQLError(
+                        f"GraphQL errors: {parsed_response['errors']} Variables: {variables}"
+                    )
             return parsed_response
         except requests.exceptions.HTTPError as e:
             logger.warning(f"Failed to execute GraphQL query: {repr(e)}")
