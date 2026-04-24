@@ -18,6 +18,7 @@ setup(
     packages=["shopify_client"],
     install_requires=[
         "requests>=2.25.1",
+        "tenacity==9.1.2"
     ],
     extras_require={
         "dev": [
